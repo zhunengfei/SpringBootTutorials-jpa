@@ -1,0 +1,63 @@
+package com.example.jpatutorials.dao;
+
+import com.example.jpatutorials.entity.User;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import org.springframework.stereotype.Repository;
+
+
+@Repository
+public class UserDaoImpl implements UserDao {
+
+  @PersistenceContext
+  private EntityManager entityManager;
+
+  @Override
+  public User getById(int id) {
+    //find by primary key
+    return this.entityManager.find(User.class, id);
+  }
+
+  @Override
+  public User getByNumber(String number) {
+    Query query = this.entityManager.createQuery("from User u where u.number=:number", User.class);
+    query.setParameter("number", number);
+    User user = (User) query.getSingleResult();
+    return user;
+  }
+
+  @Override
+  public User getByName(String name) {
+    Query query = this.entityManager.createQuery("from User u where u.name=:name", User.class);
+    query.setParameter("name", name);
+    User user = null;
+    try {
+      user = (User) query.getSingleResult();
+    } catch (NoResultException noResultException) {
+      System.out.println("找不到用户！");
+    }
+    return user;
+  }
+
+  @Override
+  public int addUser(User user) {
+    this.entityManager.persist(user);
+    //print the id
+    System.out.println(user.getId());
+    return user.getId();
+  }
+
+  @Override
+  public void deleteUserById(int id) {
+    User user = this.entityManager.find(User.class, id); //关联到记录，方可删除
+    this.entityManager.remove(user);
+  }
+
+  @Override
+  public User updateUser(User user) {
+    User userNew = this.entityManager.merge(user);
+    return userNew;
+  }
+}
